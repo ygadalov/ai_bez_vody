@@ -130,11 +130,23 @@ DOUBT_HEAD, DOUBT_BG = HexColor("#475569"), HexColor("#EEF2F6")
 CALL["Частое сомнение"] = (DOUBT_HEAD, DOUBT_BG)
 dq = ParagraphStyle("dq", parent=cbody, fontName="DV-B", fontSize=9.6, leading=13.6, textColor=HexColor("#334155"), spaceAfter=4)
 dsrc = "<font color='#6B7280' size='7.6'><i>— {}</i></font>"
+LINK = "#2A6FB0"
+
+def link(url, text=None):
+    """Кликабельная ссылка. Без text показываем адрес без https:// и www, длинный — с многоточием."""
+    if text is None:
+        text = url.split("://", 1)[-1].removeprefix("www.").rstrip("/")
+        if len(text) > 92:
+            text = text[:89] + "…"
+    return f'<a href="{url}" color="{LINK}">{text}</a>'
 
 def doubt(question, answer, facts=(), fair=None, phrase=None):
-    """Плашка «Частое сомнение»: сомнение → ответ → факты с источниками → что справедливо → фраза для обсуждения."""
+    """Плашка «Частое сомнение»: сомнение → ответ → факты с источниками → что справедливо → фраза для обсуждения.
+    Факт — (текст, источник) или (текст, источник, url): тогда источник кликабелен."""
     c = [Paragraph(f"«{question}»", dq), Paragraph(answer, cbody)]
-    for text, source in facts:
+    for text, source, *url in facts:
+        if url:
+            source = link(url[0], source)
         c.append(Paragraph(f"{text} " + dsrc.format(source), cbul, bulletText="•"))
     if fair:
         c.append(Paragraph(f"<font color='#C2410C'><b>Что здесь справедливо.</b></font> {fair}", cbody))
@@ -144,9 +156,47 @@ def doubt(question, answer, facts=(), fair=None, phrase=None):
 
 srcst = ParagraphStyle("srcst", fontName="DV", fontSize=7.2, leading=9.6, textColor=GREY, leftIndent=10, bulletIndent=0, spaceAfter=1.5)
 def sources_block(items):
-    """Источники фактов из плашек «Частое сомнение» — в конце урока."""
+    """Источники фактов из плашек «Частое сомнение» — в конце урока.
+    Элемент — (описание, url, ...): все адреса выводятся кликабельными ссылками."""
     from reportlab.platypus import KeepTogether as KT
-    return KT([Paragraph("Источники фактов", h2)] + [Paragraph(i, srcst, bulletText="·") for i in items])
+    paras = []
+    for text, *urls in items:
+        paras.append(Paragraph(text + " — " + " · ".join(link(u) for u in urls), srcst, bulletText="·"))
+    return KT([Paragraph("Источники фактов", h2),
+               Paragraph("Ссылки кликабельны. Реестр всех фактов урока — в файле docs/facts.md репозитория.",
+                         srcst)] + paras)
+
+# ---------- сноски-расшифровки аббревиатур ----------
+_FN = []          # тексты сносок урока по порядку
+_FN_PAGE = []     # номера сносок, встреченных на текущей странице
+FN_ZONE = 30      # высота зоны сносок над нижним полем
+
+def fn(abbr, note):
+    """Аббревиатура со сноской внизу страницы: fn("LLM", "Large Language Model — большая языковая модель")."""
+    _FN.append((abbr, note))
+    n = len(_FN)
+    return f'{abbr}<super><font size="6.5">{n}</font></super><onDraw name="fn" label="{n}"/>'
+
+def _fn_seen(canv, kind, label):
+    if label not in _FN_PAGE:
+        _FN_PAGE.append(label)
+
+fnst = ParagraphStyle("fnst", fontName="DV", fontSize=6.8, leading=8.4, textColor=GREY)
+def _fn_draw(c, top):
+    """Сноски текущей страницы — под текстом, над колонтитулом."""
+    if not _FN_PAGE:
+        return
+    c.saveState()
+    c.setStrokeColor(LINE); c.setLineWidth(0.5); c.line(M, top, M + 70, top)
+    y = top - 3
+    for label in _FN_PAGE:
+        abbr, note = _FN[int(label) - 1]
+        para = Paragraph(f"<super><font size='5.5'>{label}</font></super> <b>{abbr}</b> — {note}", fnst)
+        _, hh = para.wrap(CW, 100)
+        y -= hh
+        para.drawOn(c, M, y)
+    c.restoreState()
+    _FN_PAGE.clear()
 
 # ---------- оформление страниц и сборка ----------
 def _network(c, ox, oy, layers=(3, 5, 5, 2), lx=46, ly=34):
@@ -184,6 +234,7 @@ def build(path, title, kicker, title_lines, subtitle_lines, header, story,
         c.setFillColor(GREY); c.setFont("DV", 7.2)
         c.drawString(M, 30, f"Версия: {version} · для самостоятельного повторения")
         c.restoreState()
+        c.setNamedCB("fn", _fn_seen)
 
     def later(c, doc):
         c.saveState()
@@ -196,8 +247,10 @@ def build(path, title, kicker, title_lines, subtitle_lines, header, story,
     doc = BaseDocTemplate(path, pagesize=A4, title=title, author="Курс «ИИ без воды»",
                           leftMargin=M, rightMargin=M, topMargin=58, bottomMargin=50)
     doc.addPageTemplates([
-        PageTemplate("cover", [Frame(M, 50, CW, H - 306 - 50 - 20, id="c")], onPage=cover),
-        PageTemplate("body", [Frame(M, 46, CW, H - 58 - 46, id="b")], onPage=later)])
+        PageTemplate("cover", [Frame(M, 50 + FN_ZONE, CW, H - 306 - 50 - 20 - FN_ZONE, id="c")], onPage=cover,
+                     onPageEnd=lambda c, d: _fn_draw(c, 50 + FN_ZONE - 4)),
+        PageTemplate("body", [Frame(M, 46 + FN_ZONE, CW, H - 58 - 46 - FN_ZONE, id="b")], onPage=later,
+                     onPageEnd=lambda c, d: _fn_draw(c, 46 + FN_ZONE - 4))])
     doc.build([NextPageTemplate("body"), Spacer(1, 6)] + story)
 
 h1c = ParagraphStyle("h1c", parent=h1, spaceBefore=0)

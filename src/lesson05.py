@@ -201,10 +201,10 @@ S += [P("1. От анатомии к технике", h1),
             "Такие советы ходят по интернету, но в аккуратных проверках они не подтверждаются. Работают не "
             "заклинания, а то, что даёт модели информацию: образец результата, ход решения, ясные "
             "границы данных. Именно этому посвящён урок.",
-            facts=[("Угрозы и обещания «чаевых» в целом не дали значимого эффекта на сложных тестах (GPQA, "
-                    "MMLU-Pro). На отдельных вопросах результат менялся в обе стороны, и заранее "
+            facts=[("Угрозы и обещания «чаевых» в целом не дали значимого эффекта на сложных тестах (" + fn("GPQA", "Graduate-Level Google-Proof Q&amp;A: набор очень трудных вопросов по биологии, физике и химии.") + ", "
+                    "" + fn("MMLU-Pro", "Massive Multitask Language Understanding, усложнённая версия: тысячи вопросов по десяткам предметов.") + "). На отдельных вопросах результат менялся в обе стороны, и заранее "
                     "предсказать направление было нельзя.",
-                    "Wharton GAIL, Prompting Science Report 3, 2025")],
+                    "Wharton GAIL, Prompting Science Report 3, 2025", "https://gail.wharton.upenn.edu/research-and-insights/techreport-threaten-or-tip/")],
             fair="формулировка действительно влияет на ответ, иногда заметно. Поэтому любую технику, "
                  "включая описанные здесь, стоит проверить на своих задачах, а не принимать на веру.",
             phrase="Модели нужны не заклинания, а вводные — те же, что нужны новому сотруднику."),
@@ -216,7 +216,7 @@ S += [CondPageBreak(300), P("2. Примеры: показать вместо о
         "нет, это zero-shot («с нуля»), один пример — one-shot, несколько — <b>few-shot</b>. Техника "
         "особенно сильна там, где правило трудно сформулировать, но легко узнать «хорошо» на глаз: "
         "классификация, единый формат, фирменный стиль, разбор документов по шаблону."),
-      P("Пример из практики — разнести проводки по статьям управленческого P&amp;L. Описать все правила "
+      P("Пример из практики — разнести проводки по статьям управленческого " + fn("P&amp;L", "Profit and Loss: отчёт о прибылях и убытках.") + ". Описать все правила "
         "долго, а три размеченные строки сразу показывают и логику, и формат ответа."),
       figure(fig_fewshot(), "Рис. 1. Примеры задают и логику, и формат: модель отвечает так же, как в образцах"),
       code("Разнеси проводки по статьям управленческого P&L.\n"
@@ -254,6 +254,9 @@ S += [CondPageBreak(300), P("3. Рассуждение по шагам", h1),
         "расчёта. Если попросить <b>сначала рассуждение, потом ответ</b>, промежуточные шаги попадают в "
         "контекст и служат опорой для вывода. Эту технику называют <b>chain of thought</b> — цепочка "
         "рассуждений."),
+      P("Пример — проверка ковенанта по долговой нагрузке заёмщика: «Долг / " + fn("EBITDA", "Earnings Before "
+        "Interest, Taxes, Depreciation and Amortization: прибыль до вычета процентов, налогов и амортизации.") +
+        " ≤ 3,5». Спросим модель двумя способами."),
       figure(fig_cot(), "Рис. 2. Один вопрос — два ответа. По шагам видно, что учтено, а что нет"),
       P("Два способа попросить:"),
       *numbered([
@@ -279,11 +282,12 @@ S += [CondPageBreak(300), P("3. Рассуждение по шагам", h1),
             "ход решения, однако текст рассуждения — тоже сгенерированный текст. Он не всегда честно "
             "отражает, что на самом деле повлияло на ответ.",
             facts=[("Одна фраза «давай рассуждать по шагам» подняла точность модели на школьных задачах "
-                    "с 17,7% до 78,7% (MultiArith) и с 10,4% до 40,7% (GSM8K).",
-                    "Kojima и др., NeurIPS 2022"),
+                    "с 17,7% до 78,7% (" + fn("MultiArith", "набор простых текстовых задач по арифметике.") + ") и с 10,4% до 40,7% (" + fn("GSM8K", "Grade School Math 8K: около 8,5 тыс. школьных текстовых задач по математике.") + ").",
+                    "Kojima и др., NeurIPS 2022", "https://arxiv.org/abs/2205.11916"),
                    ("Когда рассуждающим моделям подсовывали подсказку к ответу, они признавали это в "
                     "своём рассуждении лишь в 25% и 39% случаев.",
-                    "Anthropic, «Reasoning models don't always say what they think», 2025")],
+                    "Anthropic, «Reasoning models don't always say what they think», 2025",
+                    "https://www.anthropic.com/research/reasoning-models-dont-say-think")],
             fair="рассуждение действительно помогает и даёт материал для проверки. Но проверять нужно "
                  "шаги по исходным данным, а не верить им потому, что они выглядят логично.",
             phrase="Рассуждение модели — это черновик расчёта, который удобно проверить, а не доказательство."),
@@ -407,10 +411,10 @@ S += [CondPageBreak(300), P("6. Итерации и промпт-ревью", h1
             "данные, код, человек.",
             facts=[("Цикл «черновик → самокритика → правка» улучшил результаты в среднем примерно на 20 "
                     "процентных пунктов на семи задачах, хотя в математике прирост был почти нулевым.",
-                    "Madaan и др., Self-Refine, NeurIPS 2023"),
+                    "Madaan и др., Self-Refine, NeurIPS 2023", "https://arxiv.org/abs/2303.17651"),
                    ("В задачах на рассуждение без внешней обратной связи модели не исправляли свои ошибки, "
                     "а иногда после «самопроверки» отвечали хуже.",
-                    "Huang и др., ICLR 2024")],
+                    "Huang и др., ICLR 2024", "https://arxiv.org/abs/2310.01798")],
             fair="самопроверка не заменяет внешнюю. Факты и расчёты сверяйте с документом или кодом, "
                  "а решение по-прежнему за вами (урок 3, матрица доверия).",
             phrase="Модель хорошо вычитывает текст по чек-листу, но цифры мы сверяем с отчётностью сами."),
@@ -442,7 +446,7 @@ S += [CondPageBreak(320), P("7. Как выбрать технику", h1),
             facts=[("Просьба рассуждать по шагам дала обычным моделям небольшой прирост точности, но "
                     "добавила разброса в ответах. Рассуждающим моделям она почти не помогла, а время "
                     "ответа выросло на 20–80%.",
-                    "Wharton GAIL, Prompting Science Report 2, 2025")],
+                    "Wharton GAIL, Prompting Science Report 2, 2025", "https://gail.wharton.upenn.edu/research-and-insights/tech-report-chain-of-thought/")],
             fair="конкретные «трюки» стареют быстро, и тратить время на коллекцию волшебных формулировок "
                  "не стоит. Поэтому в курсе они вынесены в фиолетовые плашки, а в основном тексте — "
                  "принципы.",
@@ -519,7 +523,7 @@ S += [P("Практика", h1),
       ]),
       KeepTogether([P("Что почитать", h2)] + bullets([
           "Официальное руководство Anthropic по промптингу — docs.claude.com, разделы о примерах, "
-          "рассуждении, XML-тегах и цепочках промптов.",
+          "рассуждении, " + fn("XML", "Extensible Markup Language: язык разметки данных тегами; теги в промптах похожи на него внешне.") + "-тегах и цепочках промптов.",
           "Wharton Generative AI Labs, серия «Prompting Science Reports» — короткие проверки популярных "
           "советов по промптингу на данных.",
           "Kojima и др., «Large Language Models are Zero-Shot Reasoners» (2022) — та самая статья про "
@@ -527,19 +531,20 @@ S += [P("Практика", h1),
           "Следующий урок: <b>«Документы и данные»</b> — как давать модели отчёты, таблицы и PDF, "
           "и как не потерять в них цифры."])),
       sources_block([
-          "Meincke L., Mollick E., Mollick L., Shapiro D. Prompting Science Report 3: I'll pay you or "
-          "I'll kill you — but will you care? // Wharton GAIL, 2025 — "
-          "gail.wharton.upenn.edu/research-and-insights/techreport-threaten-or-tip/ (arXiv:2508.00614)",
-          "Kojima T. и др. Large Language Models are Zero-Shot Reasoners // NeurIPS 2022 — arXiv:2205.11916",
-          "Anthropic. Reasoning models don't always say what they think, 03.04.2025 — "
-          "anthropic.com/research/reasoning-models-dont-say-think",
-          "Madaan A. и др. Self-Refine: Iterative Refinement with Self-Feedback // NeurIPS 2023 — "
-          "arXiv:2303.17651",
-          "Huang J. и др. Large Language Models Cannot Self-Correct Reasoning Yet // ICLR 2024 — "
-          "arXiv:2310.01798",
-          "Meincke L., Mollick E., Mollick L., Shapiro D. Prompting Science Report 2: The Decreasing Value "
-          "of Chain of Thought in Prompting // Wharton GAIL, 2025 — "
-          "gail.wharton.upenn.edu/research-and-insights/tech-report-chain-of-thought/ (arXiv:2506.07142)"]),
+          ("Meincke L., Mollick E., Mollick L., Shapiro D. Prompting Science Report 3: I'll pay you or "
+           "I'll kill you — but will you care? // Wharton GAIL, 2025",
+           "https://gail.wharton.upenn.edu/research-and-insights/techreport-threaten-or-tip/", "https://arxiv.org/abs/2508.00614"),
+          ("Kojima T. и др. Large Language Models are Zero-Shot Reasoners // NeurIPS 2022",
+           "https://arxiv.org/abs/2205.11916"),
+          ("Anthropic. Reasoning models don't always say what they think, 03.04.2025",
+           "https://www.anthropic.com/research/reasoning-models-dont-say-think"),
+          ("Madaan A. и др. Self-Refine: Iterative Refinement with Self-Feedback // NeurIPS 2023",
+           "https://arxiv.org/abs/2303.17651"),
+          ("Huang J. и др. Large Language Models Cannot Self-Correct Reasoning Yet // ICLR 2024",
+           "https://arxiv.org/abs/2310.01798"),
+          ("Meincke L., Mollick E., Mollick L., Shapiro D. Prompting Science Report 2: The Decreasing Value "
+           "of Chain of Thought in Prompting // Wharton GAIL, 2025",
+           "https://gail.wharton.upenn.edu/research-and-insights/tech-report-chain-of-thought/", "https://arxiv.org/abs/2506.07142")]),
       ]
 
 build(OUT, "Урок 5. Техники промптинга", "МОДУЛЬ 2 · РАЗГОВОР С МОДЕЛЬЮ · УРОК 5",

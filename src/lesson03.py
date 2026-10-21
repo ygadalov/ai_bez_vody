@@ -33,35 +33,46 @@ def fig_frontier():
 
 # Рис. 2 — правдоподобно и правда
 def fig_venn():
-    d = Drawing(CW, 150)
-    d.add(Circle(110, 75, 62, fillColor=HexColor("#F8D6CA"), strokeColor=CORAL, strokeWidth=1.2))
-    d.add(Circle(190, 75, 62, fillColor=HexColor("#CDEBE6"), strokeColor=TEAL, strokeWidth=1.2,
+    d = Drawing(CW, 196)
+    r, cy = 82, 98
+    lx, rx = 100, 210
+    d.add(Circle(lx, cy, r, fillColor=HexColor("#F8D6CA"), strokeColor=CORAL, strokeWidth=1.2))
+    d.add(Circle(rx, cy, r, fillColor=HexColor("#CDEBE6"), strokeColor=TEAL, strokeWidth=1.2,
                  fillOpacity=0.75))
-    txt(d, 80, 82, "Правдоподобно", 8.4, CORAL, "DV-B", "middle")
-    txt(d, 80, 70, "звучит как надо", 7.2, INK, "DV", "middle")
-    txt(d, 222, 82, "Правда", 8.4, DTEAL, "DV-B", "middle")
-    txt(d, 222, 70, "соответствует", 7.2, INK, "DV", "middle")
-    txt(d, 222, 60, "фактам", 7.2, INK, "DV", "middle")
-    txt(d, 150, 78, "чаще", 7.4, NAVY, "DV-B", "middle")
-    txt(d, 150, 68, "всего", 7.4, NAVY, "DV-B", "middle")
+    txt(d, 68, cy + 8, "Правдоподобно", 8.6, CORAL, "DV-B", "middle")
+    txt(d, 68, cy - 5, "звучит как надо", 7.4, INK, "DV", "middle")
+    txt(d, 244, cy + 8, "Правда", 8.6, DTEAL, "DV-B", "middle")
+    txt(d, 244, cy - 5, "соответствует", 7.4, INK, "DV", "middle")
+    txt(d, 244, cy - 16, "фактам", 7.4, INK, "DV", "middle")
+    txt(d, (lx + rx) / 2, cy + 3, "чаще", 7.6, NAVY, "DV-B", "middle")
+    txt(d, (lx + rx) / 2, cy - 8, "всего", 7.6, NAVY, "DV-B", "middle")
     for i, l in enumerate(["Модель оптимизирована на левый круг.", "Галлюцинация — то, что попало",
                            "в «правдоподобно», но не в «правда»."]):
-        txt(d, 290, 92 - i * 14, l, 8, INK, "DV-B" if i == 0 else "DV")
+        txt(d, 306, cy + 14 - i * 14, l, 7.8, INK, "DV-B" if i == 0 else "DV")
     return d
 
 # Рис. 3 — инструменты
 def fig_tools():
-    d = Drawing(CW, 190)
-    cx, cy = CW / 2, 98
-    tools = [(70, 160, "Веб-поиск", "свежие факты"), (CW - 70, 160, "Запуск кода", "точные расчёты, графики"),
-             (70, 60, "Файлы и документы", "ваши данные"), (CW - 70, 60, "Внешние сервисы", "почта, CRM, базы (MCP)"),
-             (cx, 22, "Память / проекты", "контекст между чатами")]
+    d = Drawing(CW, 214)
+    cx, cy, R = CW / 2, 104, 36
+    bw, bh = 124, 26
+    tools = [(70, 178, "Веб-поиск", "свежие факты"), (CW - 70, 178, "Запуск кода", "точные расчёты, графики"),
+             (70, 76, "Файлы и документы", "ваши данные"), (CW - 70, 76, "Внешние сервисы", "почта, CRM, базы (MCP)"),
+             (cx, 28, "Память / проекты", "контекст между чатами")]
     for x, y, nm, sub in tools:
-        arrow(d, cx + (x - cx) * 0.25, cy + (y - cy) * 0.25 + (0 if y != 22 else -10),
-              x + (cx - x) * (0.22 if y != 22 else 0), y + (12 if y == 22 else (cy - y) * 0.15), GREY, 1)
-        rbox(d, x - 62, y - 13, 124, 26, TEAL, [nm], fs=8.2)
-        txt(d, x, y - 24, sub, 7, GREY, "DV", "middle")
-    d.add(Circle(cx, cy, 36, fillColor=NAVY, strokeColor=NAVY))
+        # двусторонняя связь: модель обращается к инструменту и получает результат
+        dx, dy = x - cx, y - cy
+        L = math.hypot(dx, dy)
+        ux, uy = dx / L, dy / L
+        x1, y1 = cx + ux * (R + 4), cy + uy * (R + 4)
+        # точка на границе плашки инструмента
+        t = min((bw / 2 + 4) / abs(dx) if dx else 1e9, (bh / 2 + 4) / abs(dy) if dy else 1e9)
+        x2, y2 = x - dx * t, y - dy * t
+        arrow(d, x1, y1, x2, y2, GREY, 1, 6)
+        arrow(d, x2, y2, x1, y1, GREY, 1, 6)
+        rbox(d, x - bw / 2, y - bh / 2, bw, bh, TEAL, [nm], fs=8.2)
+        txt(d, x, y + 18 if y > cy else y - 24, sub, 7, GREY, "DV", "middle")
+    d.add(Circle(cx, cy, R, fillColor=NAVY, strokeColor=NAVY))
     txt(d, cx, cy + 2, "Языковая", 8.4, white, "DV-B", "middle")
     txt(d, cx, cy - 9, "модель", 8.4, white, "DV-B", "middle")
     return d
@@ -77,11 +88,14 @@ def fig_matrix():
     for cx_, cy_, t, s, c, fc in cells:
         x = x0 + cx_ * (cw + 6); y = y0 + cy_ * (ch + 6)
         rbox(d, x, y, cw, ch, c, [t, s], fs=8.6, fc=fc, lead=16)
+    # ось Y: стрелка вверх, подпись — повёрнута вдоль оси, по центру
     arrow(d, x0 - 14, y0, x0 - 14, y0 + 2 * ch + 14, NAVY, 1.3)
-    txt(d, x0 - 20, y0 + ch + 3, "Цена", 7.8, NAVY, "DV-B", "end")
-    txt(d, x0 - 20, y0 + ch - 8, "ошибки ↑", 7.8, NAVY, "DV-B", "end")
+    g = Group(String(0, 0, "Цена ошибки", fontName="DV-B", fontSize=7.8, fillColor=NAVY, textAnchor="middle"))
+    g.translate(x0 - 22, y0 + ch + 3); g.rotate(90)
+    d.add(g)
+    # ось X: стрелка вправо, подпись по центру под ней
     arrow(d, x0, y0 - 14, x0 + 2 * cw + 14, y0 - 14, NAVY, 1.3)
-    txt(d, x0 + cw + 3, y0 - 26, "Сложность проверки →", 7.8, NAVY, "DV-B", "middle")
+    txt(d, x0 + cw + 3, y0 - 27, "Сложность проверки", 7.8, NAVY, "DV-B", "middle")
     return d
 
 S = []
@@ -110,7 +124,7 @@ S += [P("1. Мост от прошлых уроков: стажёр с одно�
               "где было много хороших примеров. Её слабые стороны — там, где примеров мало, они устарели или "
               "однобоки. И почти всегда она ошибается <b>уверенным тоном</b>."),
       P("2. «Зубчатая граница» возможностей", h1),
-      P("Исследователи Гарварда и BCG (2023) дали консультантам ИИ-ассистента и обнаружили: возможности ИИ — не "
+      P("Исследователи Гарварда и " + fn("BCG", "Boston Consulting Group: международная консалтинговая компания.") + " (2023) дали консультантам ИИ-ассистента и обнаружили: возможности ИИ — не "
         "ровная линия «простое умеет, сложное нет», а <b>зубчатая граница</b>. На задачах внутри неё консультанты "
         "работали заметно быстрее и качественнее. А на задаче, внешне похожей, но лежащей за границей, с ИИ "
         "ошибались <b>чаще</b>, чем без него, — потому что доверились."),
@@ -127,9 +141,10 @@ S += [P("1. Мост от прошлых уроков: стажёр с одно�
             "Исследования показывают обе картины — и это прямое следствие зубчатой границы:",
             facts=[("758 консультантов BCG: на задачах внутри границы с ИИ они выполнили на 12% больше задач, на 25% "
                     "быстрее и с качеством выше на 40%. На задаче за границей ошибались чаще, чем без ИИ.",
-                    "Dell'Acqua и соавт., Harvard Business School, 2023"),
-                   ("16 опытных программистов решали задачи в собственных, хорошо знакомых проектах. С ИИ они "
-                    "работали на <b>19% дольше</b>, хотя сами считали, что ускорились примерно на 20%.", "METR, июль 2025")],
+                    "Dell'Acqua и соавт., Harvard Business School, 2023", "https://doi.org/10.2139/ssrn.4573321"),
+                   ("Эксперимент " + fn("METR", "Model Evaluation and Threat Research: некоммерческая организация, которая измеряет возможности ИИ.") + ": 16 опытных программистов решали задачи в собственных, хорошо знакомых проектах. "
+                    "С ИИ они работали на <b>19% дольше</b>, хотя сами считали, что ускорились примерно на 20%. Речь "
+                    "об инструментах начала 2025 г.", "METR, июль 2025", "https://arxiv.org/abs/2507.09089")],
             fair="ИИ может замедлять, особенно там, где вы уже эксперт, — и человек этого может не замечать. "
                  "Поэтому полезно засекать время и честно сравнивать, а не верить ощущениям.",
             phrase="Ты прав, что не везде ускоряет. Давай найдём задачи, где он точно экономит время, и начнём с них."),
@@ -140,7 +155,7 @@ S += [CondPageBreak(320), P("3. Галлюцинации: почему ИИ ув
         "неправильная цифра. Причина прямо вытекает из урока 2: модель обучена продолжать текст <b>правдоподобно</b>, "
         "а не проверять его на истинность."),
       figure(fig_venn(), "Рис. 2. Правдоподобное и правдивое обычно совпадают — но не всегда"),
-      P("Где галлюцинаций больше всего", h2),
+      CondPageBreak(200), P("Где галлюцинаций больше всего", h2),
       table([["Зона риска", "Почему", "Пример"],
              ["Редкие факты", "Мало примеров в обучающих данных", "Реквизиты небольшой компании, имя регионального чиновника"],
              ["Ссылки и цитаты", "Модель «собирает» правдоподобный источник", "Номер пункта ПБУ, название и год научной статьи"],
@@ -178,9 +193,9 @@ S += [CondPageBreak(200), P("4. Сикофантия: ИИ любит согла
         "явно и не подсказывать желаемый ответ."),
       doubt("С ИИ люди разучатся думать",
             "Опасение подтверждается исследованиями, но эффект зависит от того, как человек работает с ИИ:",
-            facts=[("Опрос 319 специалистов, которые пользуются ИИ каждую неделю: чем больше человек доверяет ИИ, тем "
+            facts=[("Опрос 319 специалистов, использующих ИИ в работе: чем больше человек доверяет ИИ, тем "
                     "меньше он критически проверяет результат; чем больше уверен в собственных силах, тем больше "
-                    "проверяет.", "Microsoft Research и Carnegie Mellon, 2025")],
+                    "проверяет.", "Microsoft Research и Carnegie Mellon, 2025", "https://doi.org/10.1145/3706598.3713778")],
             fair="риск реальный, особенно когда человек плохо знает тему и принимает ответ на веру. Защита — не "
                  "отказ от ИИ, а привычка: просить критику, проверять ключевое, думать самому над главным.",
             phrase="Думать за нас он не должен. Он должен давать черновик, который мы критически дорабатываем."),
@@ -231,13 +246,14 @@ S += [CondPageBreak(250), P("6. Где ИИ силён, а где слаб", h1)
       doubt("Компании просто заменят людей чат-ботами",
             "Попытки были — и реальность оказалась сложнее. Ответственность за результат по-прежнему лежит на "
             "людях, и это уже закреплено в судебной практике:",
-            facts=[("В 2024 г. Klarna заявила, что ИИ-помощник делает работу 700 операторов поддержки. В мае 2025 г. "
-                    "глава компании признал, что качество оказалось ниже, и Klarna снова стала нанимать людей.",
-                    "Entrepreneur / Bloomberg, май 2025"),
-                   ("Чат-бот Air Canada неверно описал правила возврата. Компания утверждала, что бот — «отдельное "
-                    "лицо». Трибунал решил: компания отвечает за слова своего бота.", "Moffatt v. Air Canada, февраль 2024"),
-                   ("Юристы подали в суд документ со ссылками на дела, выдуманные ChatGPT, и были оштрафованы на $5000.",
-                    "Mata v. Avianca, суд Нью-Йорка, июнь 2023")],
+            facts=[("В 2024 г. Klarna заявила, что ИИ-помощник делает работу, равную труду 700 операторов поддержки. В мае "
+                    "2025 г. глава компании признал, что качество оказалось ниже, и Klarna снова стала нанимать людей.",
+                    "Entrepreneur со ссылкой на Bloomberg, май 2025", "https://www.entrepreneur.com/business-news/klarna-ceo-reverses-course-by-hiring-more-humans-not-ai/491396"),
+                   ("Чат-бот Air Canada неверно описал правила льготного тарифа. Компания утверждала, что бот — «отдельное "
+                    "лицо». Трибунал решил: компания отвечает за слова своего бота.", "Moffatt v. Air Canada, февраль 2024",
+                    "https://decisions.civilresolutionbc.ca/crt/crtd/en/525448/1/document.do"),
+                   ("Юристы подали в суд документ со ссылками на дела, выдуманные ChatGPT. Их и их фирму оштрафовали на $5000.",
+                    "Mata v. Avianca, федеральный суд Нью-Йорка, июнь 2023", "https://storage.courtlistener.com/recap/gov.uscourts.nysd.575368/gov.uscourts.nysd.575368.55.0_2.pdf")],
             fair="часть операций действительно автоматизируют, и попытки сокращений будут. Ценнее всего "
                  "станут люди, которые умеют поставить ИИ задачу и отвечают за результат.",
             phrase="ИИ — стажёр, а не руководитель: черновик делает быстро, но подпись и ответственность — за человеком."),
@@ -316,12 +332,16 @@ S += [P("Практика", h1),
           "Итан Моллик, «Co-Intelligence», главы о сильных и слабых сторонах ИИ.",
           "Следующий урок: <b>«Анатомия промпта»</b> — открываем модуль 2 и собираем идеальный запрос из шести блоков."])),
       sources_block([
-          "Dell'Acqua F. и др. Navigating the Jagged Technological Frontier // HBS Working Paper, 2023 — aiinstitute.hbs.edu/navigating-the-jagged-technological-frontier",
-          "METR. Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity, 10.07.2025 — изложение: simonwillison.net/b/8833",
-          "Lee H.-P. и др. The Impact of Generative AI on Critical Thinking // CHI 2025 — изложение: theregister.com/2025/02/11/microsoft_study_ai_critical_thinking",
-          "Entrepreneur, 09.05.2025: «Klarna Is Hiring Customer Service Agents After AI Couldn't Cut It» — entrepreneur.com/business-news/klarna-ceo-reverses-course-by-hiring-more-humans-not-ai/491396",
-          "ABA Business Law Today, февраль 2024: BC Tribunal Confirms Companies Remain Liable for Information Provided by AI Chatbot — americanbar.org",
-          "LawSites, 22.06.2023: Court imposes sanctions on lawyers who filed bogus cases after relying on ChatGPT — lawnext.com"]),
+          ("Dell'Acqua F. и др. Navigating the Jagged Technological Frontier // HBS Working Paper 24-013, 2023; "
+           "вторая ссылка — PDF статьи", "https://doi.org/10.2139/ssrn.4573321", "https://mitsloan.mit.edu/sites/default/files/2023-10/SSRN-id4573321.pdf"),
+          ("Becker J. и др. (METR). Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer "
+           "Productivity, июль 2025", "https://arxiv.org/abs/2507.09089"),
+          ("Lee H.-P. и др. The Impact of Generative AI on Critical Thinking // CHI 2025", "https://doi.org/10.1145/3706598.3713778"),
+          ("Klarna: «ИИ = 700 операторов» (февраль 2024) и разворот к найму людей (май 2025)",
+           "https://www.cxtoday.com/contact-center/klarna-claims-its-new-ai-assistant-does-the-work-of-700-full-time-agents/", "https://www.entrepreneur.com/business-news/klarna-ceo-reverses-course-by-hiring-more-humans-not-ai/491396"),
+          ("Moffatt v. Air Canada, 2024 BCCRT 149 — текст решения трибунала, 14.02.2024", "https://decisions.civilresolutionbc.ca/crt/crtd/en/525448/1/document.do"),
+          ("Mata v. Avianca, 678 F. Supp. 3d 443 (S.D.N.Y. 2023) — постановление о санкциях от 22.06.2023 и "
+           "обзорная статья", "https://storage.courtlistener.com/recap/gov.uscourts.nysd.575368/gov.uscourts.nysd.575368.55.0_2.pdf", "https://en.wikipedia.org/wiki/Mata_v._Avianca,_Inc.")]),
       ]
 
 build(OUT, "Урок 3. Сильные и слабые стороны ИИ", "МОДУЛЬ 1 · КАК ДУМАЕТ МАШИНА · УРОК 3",
